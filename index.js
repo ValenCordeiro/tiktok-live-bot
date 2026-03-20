@@ -4,9 +4,9 @@ const TelegramBot = require('node-telegram-bot-api');
 const { WebcastPushConnection } = require('tiktok-live-connector');
 
 // CONFIG
-const TIKTOK_USERNAME = "julifernndez11";
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const CHAT_ID = "6494517572";
+const CHAT_ID = process.env.CHAT_ID;
+const TIKTOK_USERNAME = process.env.TIKTOK_USERNAME;
 
 // Telegram
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: false });
