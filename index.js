@@ -14,6 +14,26 @@ const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: false });
 let isLive = false;
 let tiktok = null;
 
+// 🧾 Control de logs (30 min)
+let lastLogTime = 0;
+const THIRTY_MIN = 30 * 60 * 1000;
+
+// Hora Argentina
+function getTime() {
+    return new Date().toLocaleTimeString('es-AR', {
+        timeZone: 'America/Argentina/Buenos_Aires'
+    });
+}
+
+function shouldLog() {
+    const now = Date.now();
+    if (now - lastLogTime > THIRTY_MIN) {
+        lastLogTime = now;
+        return true;
+    }
+    return false;
+}
+
 // Espera
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -31,7 +51,7 @@ async function getRoomId() {
         return match ? match[1] : null;
 
     } catch (err) {
-        console.log(`[${new Date().toLocaleTimeString()}] Error room_id: ${err.message}`);
+        console.log(`[${getTime()}] Error room_id: ${err.message}`);
         return null;
     }
 }
@@ -41,11 +61,15 @@ async function checkIfLive() {
     const roomId = await getRoomId();
 
     if (!roomId) {
-        console.log(`[${new Date().toLocaleTimeString()}] Offline`);
+        if (shouldLog()) {
+            console.log(`[${getTime()}] Offline`);
+        }
         return false;
     }
 
-    console.log(`[${new Date().toLocaleTimeString()}] Online (room ${roomId})`);
+    if (shouldLog()) {
+        console.log(`[${getTime()}] Online (room ${roomId})`);
+    }
     return true;
 }
 
@@ -57,22 +81,24 @@ async function connectToLive() {
         });
 
         await tiktok.connect();
-        console.log(`[${new Date().toLocaleTimeString()}] ✅ Conectado al LIVE`);
+        console.log(`[${getTime()}] ✅ Conectado al LIVE`);
 
         tiktok.on('disconnected', () => {
-            console.log(`[${new Date().toLocaleTimeString()}] ⚫ Live terminado (evento)`);
+            console.log(`[${getTime()}] ⚫ Live terminado (evento)`);
             isLive = false;
         });
 
     } catch (err) {
-        console.log(`[${new Date().toLocaleTimeString()}] Error conectando: ${err.message}`);
+        console.log(`[${getTime()}] Error conectando: ${err.message}`);
         isLive = false;
     }
 }
 
 // Lógica principal
 async function checkIfLiveAndNotify() {
-    console.log(`[${new Date().toLocaleTimeString()}] Chequeando...`);
+    if (shouldLog()) {
+        console.log(`[${getTime()}] Chequeando...`);
+    }
 
     const liveNow = await checkIfLive();
 
@@ -80,7 +106,7 @@ async function checkIfLiveAndNotify() {
     if (liveNow && !isLive) {
         isLive = true;
 
-        console.log(`[${new Date().toLocaleTimeString()}] 🔴 LIVE DETECTADO`);
+        console.log(`[${getTime()}] 🔴 LIVE DETECTADO`);
 
         await bot.sendMessage(
             CHAT_ID,
@@ -92,23 +118,27 @@ async function checkIfLiveAndNotify() {
 
     // ON → OFF
     if (!liveNow && isLive) {
-        console.log(`[${new Date().toLocaleTimeString()}] ⚫ Live terminado`);
+        console.log(`[${getTime()}] ⚫ Live terminado`);
         isLive = false;
     }
 }
 
 // LOOP 24/7 inteligente
 async function start() {
-    console.log("Sistema iniciado (intervalo dinámico)...");
+    console.log(`[${getTime()}] Sistema iniciado (intervalo dinámico)...`);
 
     await checkIfLiveAndNotify();
 
     while (true) {
         if (isLive) {
-            console.log("⏱️ Esperando 1 hora (está en vivo)");
+            if (shouldLog()) {
+                console.log(`[${getTime()}] ⏱️ Esperando 1 hora (en vivo)`);
+            }
             await sleep(3600000); // 1 hora
         } else {
-            console.log("⏱️ Esperando 1 minuto (offline)");
+            if (shouldLog()) {
+                console.log(`[${getTime()}] ⏱️ Esperando 1 minuto (offline)`);
+            }
             await sleep(60000); // 1 minuto
         }
 
