@@ -3,6 +3,14 @@ const axios = require('axios');
 const TelegramBot = require('node-telegram-bot-api');
 const { WebcastPushConnection } = require('tiktok-live-connector');
 
+const http = require('http');
+
+// Servidor para mantener vivo en Render
+http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end('Bot activo');
+}).listen(process.env.PORT || 3000);
+
 // CONFIG
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
