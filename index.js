@@ -5,10 +5,13 @@ const { WebcastPushConnection } = require('tiktok-live-connector');
 const http = require('http');
 
 // Servidor para mantener vivo en Render
+const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
     res.writeHead(200);
     res.end('Bot activo');
-}).listen(process.env.PORT || 3000);
+}).listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor HTTP en puerto ${PORT}`);
+});
 
 // CONFIG
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
